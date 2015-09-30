@@ -1,0 +1,22 @@
+{
+  "name": "beer-chooser",
+  "version": "1.0.0",
+  "description": "Randomly chooses a beer that is currently available at local LCBO (store ID: 511). Never duplicates its selection.",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rpavlovs/beer-chooser.git"
+  },
+  "author": "Roman Pavlovskyi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rpavlovs/beer-chooser/issues"
+  },
+  "homepage": "https://github.com/rpavlovs/beer-chooser#readme",
+  "dependencies": {
+    "bower": "^1.5.3"
+  }
+}

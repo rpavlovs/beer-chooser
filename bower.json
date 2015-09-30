@@ -1,0 +1,21 @@
+{
+  "name": "beer-chooser",
+  "version": "1.0.0",
+  "homepage": "https://github.com/rpavlovs/beer-chooser",
+  "authors": [
+    "Roman Pavlovskyi <wilohvost@gmail.com>"
+  ],
+  "description": "Randomly chooses a beer that is currently available at local LCBO (store ID: 511). Never duplicates its selection.",
+  "moduleType": [
+    "globals"
+  ],
+  "license": "MIT",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}
