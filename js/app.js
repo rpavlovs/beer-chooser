@@ -5,25 +5,40 @@ LCBO_AUTH_TOKEN = "MDowZDYyMzdkYy02NzMzLTExZTUtOTViZi1hZjQzOTI5ZDFkYjM6MENZa" /
 
 LCBO_API_LOCAL_BEER = "http://lcboapi.com/products?q=beer&store_id=511&access_key="+LCBO_AUTH_TOKEN;
 
-LCBO_API_CALL = "http://lcboapi.com/inventories?store_id=511&access_key="+LCBO_AUTH_TOKEN;
+LCBO_API_LOCAL_INVENTORY = "http://lcboapi.com/inventories?store_id=511&access_key="+LCBO_AUTH_TOKEN;
 
 
 var app = angular.module('beerChooser', []);
 
 app.controller('BeerListCtrl', function($scope, $http, $q) {
 
-	 getAllPagesAsync(LCBO_API_LOCAL_BEER).then(function(beers){
-	 	$scope.beers = beers;
-	 	console.log(beers);
-	 });
+	$q.all([
+		getAllPagesAsync(LCBO_API_LOCAL_BEER),
+		getAllPagesAsync(LCBO_API_LOCAL_INVENTORY)
+	 ]).then(function(res){
 
-	 getAllPagesAsync(LCBO_API_CALL).then(function(res){
-	 	var prod_ids = [];
-	 	_.each(res, function(product){
-	 		prod_ids.push(product.product_id);
+	 	var beer_ids = [],
+			inventory_ids = [];
+
+	 	$scope.beers = res[0];
+
+	 	_.each(res[0], function(beer){
+	 		if(beer.primary_category == "Beer"){
+	 			beer_ids.push(beer.id);
+	 		}
 	 	});
-	 	console.log(res);
-	 	console.log(prod_ids);
+	 	console.log("Beer_ids: ", beer_ids.sort());
+
+	 	_.each(res[1], function(product){
+	 		inventory_ids.push(product.product_id);
+	 	});
+	 	console.log("inventory_ids: ", inventory_ids.sort());
+
+
+	 	var beers_in_store = _.intersection(beer_ids, inventory_ids),
+	 		beers_not_in_store = _.difference(beer_ids, inventory_ids);
+	 	console.log("In store: ", beers_in_store);
+	 	console.log("Not in store: ", beers_not_in_store);
 	 });
 
 	function getAllPagesAsync(url) {
