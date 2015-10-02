@@ -7,39 +7,53 @@ LCBO_API_LOCAL_BEER = "http://lcboapi.com/products?q=beer&store_id=511&access_ke
 
 LCBO_API_LOCAL_INVENTORY = "http://lcboapi.com/inventories?store_id=511&access_key="+LCBO_AUTH_TOKEN;
 
+LCBO_API_PRODUCTS = "http://lcboapi.com/products/";
 
 var app = angular.module('beerChooser', []);
 
 app.controller('BeerListCtrl', function($scope, $http, $q) {
 
-	$q.all([
-		getAllPagesAsync(LCBO_API_LOCAL_BEER),
-		getAllPagesAsync(LCBO_API_LOCAL_INVENTORY)
-	 ]).then(function(res){
-
-	 	var beer_ids = [],
-			inventory_ids = [];
-
-	 	$scope.beers = res[0];
-
-	 	_.each(res[0], function(beer){
-	 		if(beer.primary_category == "Beer"){
-	 			beer_ids.push(beer.id);
-	 		}
-	 	});
-	 	console.log("Beer_ids: ", beer_ids.sort());
-
-	 	_.each(res[1], function(product){
-	 		inventory_ids.push(product.product_id);
-	 	});
-	 	console.log("inventory_ids: ", inventory_ids.sort());
+	var next_beer_id = -1;
 
 
-	 	var beers_in_store = _.intersection(beer_ids, inventory_ids),
-	 		beers_not_in_store = _.difference(beer_ids, inventory_ids);
-	 	console.log("In store: ", beers_in_store);
-	 	console.log("Not in store: ", beers_not_in_store);
-	 });
+
+	getLocalBeerIdsAsync().then(function(beerIds){
+		console.log(beerIds);
+		var random_index = Math.round(Math.random()*beerIds.length);
+		console.log("random_index: ", random_index);
+		next_to_try = beerIds[random_index];
+		console.log("next_to_try: ", next_to_try);
+
+		$http.get(LCBO_API_PRODUCTS+next_to_try).success(function(response){
+			$scope.next_beer = response.result;
+			console.log(response.result);
+		});
+
+	});
+
+	function getLocalBeerIdsAsync() {
+		return $q(function(resolve, reject){
+			$q.all([
+				getAllPagesAsync(LCBO_API_LOCAL_BEER),
+				getAllPagesAsync(LCBO_API_LOCAL_INVENTORY)
+			 ]).then(function(res){
+			 	var beer_ids = [],
+					inventory_ids = [];
+
+			 	_.each(res[0], function(beer){
+			 		if(beer.primary_category == "Beer"){
+			 			beer_ids.push(beer.id);
+			 		}
+			 	});
+
+			 	_.each(res[1], function(product){
+			 		inventory_ids.push(product.product_id);
+			 	});
+
+			 	resolve(_.difference(beer_ids, inventory_ids));
+			});
+		});
+	}
 
 	function getAllPagesAsync(url) {
 		return $q(function(resolve, reject){
