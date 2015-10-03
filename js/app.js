@@ -25,8 +25,9 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
     .then(function(resolve){
       console.log("past_beers init", $scope.past_beers);
       local_beer_ids = resolve[0];
+      console.log(local_beer_ids);
       var random_index = Math.round(Math.random()*local_beer_ids.length);
-      return $http.get(LCBO_API_PRODUCTS+local_beer_ids[random_index]);
+      return $http.jsonp(LCBO_API_PRODUCTS+local_beer_ids[random_index]+"?callback=JSON_CALLBACK");
     })
     .then(function(responce){
       console.log(responce);
@@ -37,7 +38,7 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
         $scope.curr_beer.image_thumb_url = "img/no_image_bottle.png";
       }
       var random_index = Math.round(Math.random()*local_beer_ids.length);
-      return $http.get(LCBO_API_PRODUCTS+local_beer_ids[random_index]);
+      return $http.jsonp(LCBO_API_PRODUCTS+local_beer_ids[random_index]+"?callback=JSON_CALLBACK");
     })
     .then(function(responce){
       console.log(responce);
@@ -80,7 +81,7 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
           new_beer_ids = _.difference(local_beer_ids, past_beer_ids),
           random_index = Math.round(Math.random()*new_beer_ids.length);
 
-      $http.get(LCBO_API_PRODUCTS+new_beer_ids[random_index])
+      $http.jsonp(LCBO_API_PRODUCTS+new_beer_ids[random_index]+"?callback=JSON_CALLBACK")
         .then(function (responce) {
           resolve(responce.data.result);
         });
@@ -114,14 +115,14 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
 
   function getAllPagesAsync(url) {
     return $q(function(resolve, reject){
-      $http.get(url+"&per_page=5").success(function(response){
+      $http.jsonp(url+"&per_page=5&callback=JSON_CALLBACK").success(function(response){
         console.log(response);
 
         var total_pages = Math.ceil(response.pager.total_record_count/100),
           promices = [];
 
         for (var i = 1; i <= total_pages; i++) {
-          promices.push($http.get(url+"&per_page=100&page="+i));
+          promices.push($http.jsonp(url+"&per_page=100&page="+i+"&callback=JSON_CALLBACK"));
         }
 
         $q.all(promices).then(function(resps){
