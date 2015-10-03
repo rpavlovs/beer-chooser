@@ -1,5 +1,5 @@
-h1 {
-	text-align: center
+h1, p {
+    text-align: center
 }
 
 
@@ -8,4 +8,12 @@ img {
     margin-left: auto;
     margin-right: auto;
     height: 400px;
+}
+
+button {
+    width: 200px;
+}
+
+#img-preload {
+    background: no-repeat -9999px -9999px;
 }
