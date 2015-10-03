@@ -1,13 +1,7 @@
 
-
-LCBO_AUTH_TOKEN = "MDowZDYyMzdkYy02NzMzLTExZTUtOTViZi1hZjQzOTI5ZDFkYjM6MENZa" /
-                  "0FUSW54WmJya2JFcDl5OTdFcmZRcVVUTWFaQTlmUDlp";
-
-LCBO_API_LOCAL_BEER = "http://lcboapi.com/products?q=beer&store_id=511&access_key=" + LCBO_AUTH_TOKEN;
-
-LCBO_API_LOCAL_INVENTORY = "http://lcboapi.com/inventories?store_id=511&access_key=" + LCBO_AUTH_TOKEN;
-
-LCBO_API_PRODUCTS = "http://lcboapi.com/products/";
+LCBO_API_LOCAL_BEER       = "http://lcboapi.com/products?q=beer&store_id=511&callback=JSON_CALLBACK";
+LCBO_API_LOCAL_INVENTORY  = "http://lcboapi.com/inventories?store_id=511&callback=JSON_CALLBACK";
+LCBO_API_PRODUCTS         = "http://lcboapi.com/products/";
 
 
 var app = angular.module('beerChooser', ["firebase"]);
@@ -23,34 +17,26 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
       $scope.past_beers.$loaded()
     ])
     .then(function(resolve){
-      console.log("past_beers init", $scope.past_beers);
       local_beer_ids = resolve[0];
-      console.log(local_beer_ids);
-      var random_index = Math.round(Math.random()*local_beer_ids.length);
-      return $http.jsonp(LCBO_API_PRODUCTS+local_beer_ids[random_index]+"?callback=JSON_CALLBACK");
-    })
-    .then(function(responce){
-      console.log(responce);
-      $scope.curr_beer = responce.data.result;
-      console.log($scope.curr_beer.image_url);
-      if ($scope.curr_beer.image_url === null) {
-        $scope.curr_beer.image_url = "img/no_image_bottle.png";
-        $scope.curr_beer.image_thumb_url = "img/no_image_bottle.png";
+      var random_index = 0,
+          random_index_next = 0;
+
+      while (random_index == random_index_next) {
+        random_index = Math.floor(Math.random()*local_beer_ids.length);
+        random_index_next = Math.floor(Math.random()*local_beer_ids.length);
       }
-      var random_index = Math.round(Math.random()*local_beer_ids.length);
-      return $http.jsonp(LCBO_API_PRODUCTS+local_beer_ids[random_index]+"?callback=JSON_CALLBACK");
+
+      return $q.all([
+          getProductAsync(local_beer_ids[random_index]),
+          getProductAsync(local_beer_ids[random_index_next])
+        ]);
     })
-    .then(function(responce){
-      console.log(responce);
-      $scope.next_beer = responce.data.result;
-      // Cache next beer images
-      var image = new Image();
-      image.src = $scope.next_beer.image_url;
-      image.src = $scope.next_beer.image_thumb_url;
+    .then(function (beers) {
+      $scope.curr_beer = beers[0];
+      $scope.next_beer = beers[1];
     });
 
   $scope.acceptBeer = function() {
-    console.log("past_beers acceptBeer", $scope.past_beers);
     $scope.past_beers.$add($scope.curr_beer)
       .then(function () {
         console.log("past_beers acceptBeer added", $scope.past_beers);
@@ -60,32 +46,39 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
 
   $scope.showAnotherBeer = function() {
     $scope.curr_beer = $scope.next_beer;
+
     getNewRandomLocalBeerAsync()
       .then(function (beer) {
         console.log(beer);
-        if (beer.image_url === null) {
-          beer.image_url = "img/no_image_bottle.png";
-          beer.image_thumb_url = "img/no_image_bottle.png";
-        }
         $scope.next_beer = beer;
-        // Cache next beer images
-        var image = new Image();
-        image.src = beer.image_url;
-        image.src = beer.image_thumb_url;
       });
   };
 
-  function getNewRandomLocalBeerAsync() {
-    return $q(function(resolve, reject){
-      var past_beer_ids = $scope.past_beers.map(function (beer) {return beer.id;}),
-          new_beer_ids = _.difference(local_beer_ids, past_beer_ids),
-          random_index = Math.round(Math.random()*new_beer_ids.length);
-
-      $http.jsonp(LCBO_API_PRODUCTS+new_beer_ids[random_index]+"?callback=JSON_CALLBACK")
+  function getProductAsync(id) {
+    return $q(function(resolve, reject) {
+      $http.jsonp(LCBO_API_PRODUCTS+id+"?callback=JSON_CALLBACK")
         .then(function (responce) {
-          resolve(responce.data.result);
+          console.log(responce);
+          var product = responce.data.result;
+          if (product.image_url === null) {
+            product.image_url = "img/no_image_bottle.png";
+            product.image_thumb_url = "img/no_image_bottle.png";
+          }
+          // Cache product images
+          var image = new Image();
+          image.src = product.image_url;
+          image.src = product.image_thumb_url;
+          resolve(product);
         });
     });
+  }
+
+  function getNewRandomLocalBeerAsync() {
+    var past_beer_ids = $scope.past_beers.map(function (beer) {return beer.id;}),
+        new_beer_ids = _.difference(local_beer_ids, past_beer_ids),
+        random_index = Math.floor(Math.random()*new_beer_ids.length);
+
+    return getProductAsync(new_beer_ids[random_index]);
   }
 
   function getLocalBeerIdsAsync() {
@@ -96,16 +89,20 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
         ])
       .then(function(res){
         var beer_ids = [],
-          inventory_ids = [];
+            inventory_ids = [],
+            beers_associated_with_store = res[0],
+            store_inventory_products = res[1];
 
-        _.each(res[0], function(beer){
-          if(beer.primary_category == "Beer"){
-            beer_ids.push(beer.id);
-          }
+        beers_associated_with_store.filter(function(beer){
+          return beer.primary_category == "Beer";
         });
 
-        _.each(res[1], function(product){
-          inventory_ids.push(product.product_id);
+        beer_ids = beers_associated_with_store.map(function(beer){
+          return beer.id;
+        });
+
+        inventory_ids = store_inventory_products.map(function(product){
+          return product.product_id;
         });
 
         resolve(_.difference(beer_ids, inventory_ids));
@@ -115,21 +112,20 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
 
   function getAllPagesAsync(url) {
     return $q(function(resolve, reject){
-      $http.jsonp(url+"&per_page=5&callback=JSON_CALLBACK").success(function(response){
-        console.log(response);
-
+      $http.jsonp(url+"&per_page=5").success(function(response){
         var total_pages = Math.ceil(response.pager.total_record_count/100),
-          promices = [];
+          pages_load = [];
 
         for (var i = 1; i <= total_pages; i++) {
-          promices.push($http.jsonp(url+"&per_page=100&page="+i+"&callback=JSON_CALLBACK"));
+          pages_load.push($http.jsonp(url+"&per_page=100&page="+i));
         }
 
-        $q.all(promices).then(function(resps){
+        $q.all(pages_load).then(function(resps){
           beers = [];
           _.each(resps, function(resp){
             beers = _.union(beers,resp.data.result);
           });
+
           resolve(beers);
         });
       });
