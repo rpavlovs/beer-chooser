@@ -10,49 +10,75 @@ LCBO_API_LOCAL_INVENTORY = "http://lcboapi.com/inventories?store_id=511&access_k
 LCBO_API_PRODUCTS = "http://lcboapi.com/products/";
 
 
-var app = angular.module('beerChooser', []);
+var app = angular.module('beerChooser', ["firebase"]);
 
-app.controller('BeerListCtrl', function($scope, $http, $q) {
+app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
+  var ref = new Firebase("https://glowing-heat-4629.firebaseio.com/"),
+      local_beer_ids = [];
 
-  var local_beer_ids = [];
+  $scope.past_beers = $firebaseArray(ref);
 
-  getLocalBeerIdsAsync()
-    .then(function(beerIds){
-      local_beer_ids = beerIds;
+  $q.all([
+      getLocalBeerIdsAsync(),
+      $scope.past_beers.$loaded()
+    ])
+    .then(function(resolve){
+      console.log("past_beers init", $scope.past_beers);
+      local_beer_ids = resolve[0];
       var random_index = Math.round(Math.random()*local_beer_ids.length);
       return $http.get(LCBO_API_PRODUCTS+local_beer_ids[random_index]);
     })
-    .then(function(resp){
-      console.log(resp);
-      $scope.next_beer = resp.data.result;
+    .then(function(responce){
+      console.log(responce);
+      $scope.curr_beer = responce.data.result;
       var random_index = Math.round(Math.random()*local_beer_ids.length);
       return $http.get(LCBO_API_PRODUCTS+local_beer_ids[random_index]);
     })
-    .then(function(resp){
-      console.log(resp);
-      $scope.next_next_beer = resp.data.result;
+    .then(function(responce){
+      console.log(responce);
+      $scope.next_beer = responce.data.result;
     });
 
-  $scope.showAnotherBeer = function() {
-    $scope.next_beer = $scope.next_next_beer;
-    var random_index = Math.round(Math.random()*local_beer_ids.length);
-    $http.get(LCBO_API_PRODUCTS+local_beer_ids[random_index])
-      .then(function(resp){
-        console.log(resp);
-        $scope.next_next_beer = resp.data.result;
-        var image = new Image();
-        image.src = next_next_beer.image_url;
-
+  $scope.acceptBeer = function() {
+    console.log("past_beers acceptBeer", $scope.past_beers);
+    $scope.past_beers.$add($scope.curr_beer)
+      .then(function () {
+        console.log("past_beers acceptBeer added", $scope.past_beers);
       });
   };
 
+  $scope.showAnotherBeer = function() {
+    $scope.curr_beer = $scope.next_beer;
+    getNewRandomLocalBeerAsync()
+      .then(function (beer) {
+        console.log(beer);
+        $scope.next_beer = beer;
+        // Cache next beer image
+        var image = new Image();
+        image.src = beer.image_url;
+      });
+  };
+
+  function getNewRandomLocalBeerAsync() {
+    return $q(function(resolve, reject){
+      var past_beer_ids = $scope.past_beers.map(function (beer) {return beer.id;}),
+          new_beer_ids = _.difference(local_beer_ids, past_beer_ids),
+          random_index = Math.round(Math.random()*new_beer_ids.length);
+
+      $http.get(LCBO_API_PRODUCTS+new_beer_ids[random_index])
+        .then(function (responce) {
+          resolve(responce.data.result);
+        });
+    });
+  }
 
   function getLocalBeerIdsAsync() {
     return $q(function(resolve, reject){
       $q.all([
-        getAllPagesAsync(LCBO_API_LOCAL_BEER),
-        getAllPagesAsync(LCBO_API_LOCAL_INVENTORY)
-       ]).then(function(res){
+          getAllPagesAsync(LCBO_API_LOCAL_BEER),
+          getAllPagesAsync(LCBO_API_LOCAL_INVENTORY)
+        ])
+      .then(function(res){
         var beer_ids = [],
           inventory_ids = [];
 

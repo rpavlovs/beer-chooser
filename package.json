@@ -21,6 +21,7 @@
   "homepage": "https://github.com/rpavlovs/beer-chooser#readme",
   "dependencies": {
     "bower": "^1.5.3",
+    "firebase": "^2.3.1",
     "http-server": "^0.8.5"
   }
 }
