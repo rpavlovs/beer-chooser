@@ -31,12 +31,21 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
     .then(function(responce){
       console.log(responce);
       $scope.curr_beer = responce.data.result;
+      console.log($scope.curr_beer.image_url);
+      if ($scope.curr_beer.image_url === null) {
+        $scope.curr_beer.image_url = "img/no_image_bottle.png";
+        $scope.curr_beer.image_thumb_url = "img/no_image_bottle.png";
+      }
       var random_index = Math.round(Math.random()*local_beer_ids.length);
       return $http.get(LCBO_API_PRODUCTS+local_beer_ids[random_index]);
     })
     .then(function(responce){
       console.log(responce);
       $scope.next_beer = responce.data.result;
+      // Cache next beer images
+      var image = new Image();
+      image.src = $scope.next_beer.image_url;
+      image.src = $scope.next_beer.image_thumb_url;
     });
 
   $scope.acceptBeer = function() {
@@ -44,6 +53,7 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
     $scope.past_beers.$add($scope.curr_beer)
       .then(function () {
         console.log("past_beers acceptBeer added", $scope.past_beers);
+        $scope.showAnotherBeer();
       });
   };
 
@@ -52,10 +62,15 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
     getNewRandomLocalBeerAsync()
       .then(function (beer) {
         console.log(beer);
+        if (beer.image_url === null) {
+          beer.image_url = "img/no_image_bottle.png";
+          beer.image_thumb_url = "img/no_image_bottle.png";
+        }
         $scope.next_beer = beer;
-        // Cache next beer image
+        // Cache next beer images
         var image = new Image();
         image.src = beer.image_url;
+        image.src = beer.image_thumb_url;
       });
   };
 

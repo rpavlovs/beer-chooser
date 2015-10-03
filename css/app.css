@@ -1,19 +1,38 @@
-h1, p {
-    text-align: center
+h1 {
+  text-align: center;
 }
 
 
-img {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    height: 400px;
+img#current-beer {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+  height: 400px;
 }
 
 button {
-    width: 200px;
+  width: 200px;
 }
 
 #img-preload {
-    background: no-repeat -9999px -9999px;
+  background: no-repeat -9999px -9999px;
 }
+
+div#past-beers {
+  display:inline-block;
+}
+
+ul#past-beers-list li {
+  display:inline;
+}
+
+ul#past-beers-list img {
+  height: 50px;
+  width: 50px;
+  padding: 0px 6px;
+}
+
+div#buttons {
+  text-align: center;
+}
+
