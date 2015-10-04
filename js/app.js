@@ -18,22 +18,14 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
     ])
     .then(function(resolve){
       local_beer_ids = resolve[0];
-      var random_index = 0,
-          random_index_next = 0;
-
-      while (random_index == random_index_next) {
-        random_index = Math.floor(Math.random()*local_beer_ids.length);
-        random_index_next = Math.floor(Math.random()*local_beer_ids.length);
-      }
-
-      return $q.all([
-          getProductAsync(local_beer_ids[random_index]),
-          getProductAsync(local_beer_ids[random_index_next])
-        ]);
+      return getNewRandomLocalBeerAsync();
     })
-    .then(function (beers) {
-      $scope.curr_beer = beers[0];
-      $scope.next_beer = beers[1];
+    .then(function (beer) {
+      $scope.curr_beer = beer;
+      return getNewRandomLocalBeerAsync();
+    })
+    .then(function (beer) {
+      $scope.next_beer = beer;
     });
 
   $scope.acceptBeer = function() {
@@ -47,7 +39,7 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
   $scope.showAnotherBeer = function() {
     $scope.curr_beer = $scope.next_beer;
 
-    getNewRandomLocalBeerAsync()
+    getNewRandomLocalBeerAsync($scope.past_beers)
       .then(function (beer) {
         console.log(beer);
         $scope.next_beer = beer;
