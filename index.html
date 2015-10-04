@@ -20,7 +20,7 @@
     <div id="past-beers">
       <div id="hide-scroll">
         <ul>
-          <li ng-repeat="past_beer in past_beers | reverse" class="thumbnail" tooltip-trigger tooltip-placement="right" tooltip="{{past_beer.name}}" tooltip-class="past-beer-tooltips">
+          <li ng-repeat="past_beer in past_beers | reverse" class="thumbnail" tooltip-trigger tooltip-placement="left" tooltip="{{past_beer.name}}" tooltip-class="past-beer-tooltips">
             <img ng-src="{{past_beer.image_thumb_url}}">
           </li>
         </ul>
@@ -29,12 +29,19 @@
         <span class="glyphicon glyphicon-trash" aria-hidden="true"></span>
       </button>
     </div>
+
+    <div id="beerInfo">
+      <p>Price: {{curr_beer.price_in_cents/100 | currency}}</p>
+      <p>Alcohol: {{curr_beer.alcohol_content / 100 }}%</p>
+    </div>
+
     <h1>How about this?</h1>
     <img id="current-beer" ng-src="{{curr_beer.image_url}}"\>
     <h1>{{curr_beer.name}}</h1>
     <div id="buttons">
       <button type="button" class="btn btn-default btn-lg" ng-click="showAnotherBeer()">
         <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span> Try again
+        <span class="badge">{{num_beers_to_try}}</span>
       </button>
       <button type="button" class="btn btn-default btn-lg" ng-click="acceptBeer()">
         <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> Looks good!

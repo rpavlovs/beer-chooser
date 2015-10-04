@@ -94,7 +94,7 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
     var past_beer_ids = $scope.past_beers.map(function (beer) {return beer.id;}),
         new_beer_ids = _.difference(local_beer_ids, past_beer_ids),
         random_index = Math.floor(Math.random()*new_beer_ids.length);
-
+    $scope.num_beers_to_try = new_beer_ids.length;
     return getProductAsync(new_beer_ids[random_index]);
   }
 
