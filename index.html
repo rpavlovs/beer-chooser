@@ -43,7 +43,7 @@
       <h1>{{next_beers_cache[0].name}}</h1>
       <div id="buttons">
         <button type="button" class="btn btn-default btn-lg" ng-click="showAnotherBeer()" ng-disabled="num_beers_to_try < 2">
-          <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span> Try again
+          <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span> Another?
           <span class="badge">{{num_beers_to_try}}</span>
         </button>
         <button type="button" class="btn btn-default btn-lg" ng-click="acceptBeer()" ng-disabled="next_beers_cache.length <= 0">

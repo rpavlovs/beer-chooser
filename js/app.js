@@ -65,7 +65,7 @@ var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap'])
 
       var next_beers_promices = [];
 
-      for (var i=0; i<NUM_BEERS_TO_PRELOAD-1 && $scope.new_beer_ids[0] ; i++) {
+      for (var i=0; i<NUM_BEERS_TO_PRELOAD-1 && $scope.new_beer_ids[0]; i++) {
         next_beers_promices.push(getProductAsync($scope.new_beer_ids.shift()));
       }
 
@@ -115,15 +115,25 @@ var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap'])
   };
 
   $scope.startOver = function() {
+
+    var past_beers_tmp = $scope.past_beers;
+    console.log("past_beers_tmp", past_beers_tmp);
+    past_beers_tmp.shuffle();
     ref.remove();
-    $scope.past_beers.forEach(function(beer){
-      console.log(beer);
-      $scope.new_beer_ids.push(beer.id);
-    });
+
+    for (var i=0; i<NUM_BEERS_TO_PRELOAD && past_beers_tmp[0]; i++) {
+      $scope.next_beers_cache.push(past_beers_tmp.shift());
+    }
+
+    for (i=0; i<past_beers_tmp.length; i++) {
+      $scope.new_beer_ids.push(past_beers_tmp[i].id);
+    }
+
     $scope.num_beers_to_try = $scope.new_beer_ids.length + $scope.next_beers_cache.length;
+
+    console.log("past_beers_tmp", past_beers_tmp);
     console.log("$scope.new_beer_ids", $scope.new_beer_ids);
     console.log("$scope.next_beers_cache", $scope.next_beers_cache);
-
   };
 
   function getProductAsync(id, cache) {
