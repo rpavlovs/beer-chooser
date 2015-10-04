@@ -19,10 +19,13 @@
   <div ng-if="curr_beer">
     <div id="past-beers">
       <ul>
-        <li ng-repeat="past_beer in past_beers | reverse | limitTo:11" class="thumbnail" tooltip-trigger tooltip-placement="right" tooltip="{{past_beer.name}}" tooltip-class="past-beer-tooltips">
+        <li ng-repeat="past_beer in past_beers | reverse | limitTo:10" class="thumbnail" tooltip-trigger tooltip-placement="right" tooltip="{{past_beer.name}}" tooltip-class="past-beer-tooltips">
           <img ng-src="{{past_beer.image_thumb_url}}">
         </li>
       </ul>
+      <button type="button" class="btn btn-default" ng-click="startOver()" ng-if="past_beers.length != 0">
+        <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+      </button>
     </div>
     <h1>How about this?</h1>
     <img id="current-beer" ng-src="{{curr_beer.image_url}}"\>

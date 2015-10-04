@@ -46,6 +46,7 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
     })
     .then(function (beer) {
       $scope.next_beer = beer;
+      console.log("Past beers: ", $scope.past_beers);
     });
 
   $scope.acceptBeer = function() {
@@ -64,6 +65,10 @@ app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
         console.log(beer);
         $scope.next_beer = beer;
       });
+  };
+
+  $scope.startOver = function() {
+    ref.remove();
   };
 
   function getProductAsync(id) {
