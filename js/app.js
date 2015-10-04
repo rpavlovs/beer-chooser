@@ -4,7 +4,27 @@ LCBO_API_LOCAL_INVENTORY  = "http://lcboapi.com/inventories?store_id=511&callbac
 LCBO_API_PRODUCTS         = "http://lcboapi.com/products/";
 
 
-var app = angular.module('beerChooser', ["firebase"]);
+var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap']);
+
+app.filter('reverse', function() {
+   function toArray(list) {
+    var k, out = [];
+    if( list ) {
+      if( angular.isArray(list) ) {
+        out = list;
+      }
+      else if( typeof(list) === 'object' ) {
+        for (k in list) {
+          if (angular.isObject(list[k])) { out.push(list[k]); }
+        }
+      }
+    }
+    return out;
+  }
+  return function(items) {
+    return toArray(items).slice().reverse();
+  };
+});
 
 app.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
   var ref = new Firebase("https://glowing-heat-4629.firebaseio.com/"),

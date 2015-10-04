@@ -3,19 +3,27 @@
 <head>
   <meta charset="utf-8">
   <title>My HTML File</title>
-  <link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.css">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
   <link rel="stylesheet" href="css/app.css">
   <script src="bower_components/underscore/underscore.js"></script>
-  <script src="bower_components/jquery/dist/jquery.js"></script>
   <script src="bower_components/angular/angular.js"></script>
   <script src="bower_components/firebase/firebase.js"></script>
   <script src="bower_components/angularfire/dist/angularfire.js"></script>
+  <!-- <script src="bower_components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script> -->
+  <script src="lib/ui-bootstrap.js"></script>
   <script src="js/app.js"></script>
 </head>
 <body ng-controller="BeerListCtrl">
   <h1 ng-if="!curr_beer">Loading...</h1>
 
   <div ng-if="curr_beer">
+    <div id="past-beers">
+      <ul>
+        <li ng-repeat="past_beer in past_beers | reverse | limitTo:11" class="thumbnail" tooltip-trigger tooltip-placement="right" tooltip="{{past_beer.name}}" tooltip-class="past-beer-tooltips">
+          <img ng-src="{{past_beer.image_thumb_url}}">
+        </li>
+      </ul>
+    </div>
     <h1>How about this?</h1>
     <img id="current-beer" ng-src="{{curr_beer.image_url}}"\>
     <h1>{{curr_beer.name}}</h1>

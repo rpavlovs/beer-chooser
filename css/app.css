@@ -2,7 +2,6 @@ h1 {
   text-align: center;
 }
 
-
 img#current-beer {
   display: block;
   margin-left: auto;
@@ -14,25 +13,37 @@ button {
   width: 200px;
 }
 
-#img-preload {
-  background: no-repeat -9999px -9999px;
+div#buttons {
+  text-align: center;
+}
+
+div#buttons button {
+  width: 200px;
 }
 
 div#past-beers {
-  display:inline-block;
+  position: absolute;
+  top: 0px;
+  left: 0px;
 }
 
-ul#past-beers-list li {
-  display:inline;
+div#past-beers ul {
+  list-style-type: none;
+  padding: 0px;
 }
 
-ul#past-beers-list img {
+div#past-beers li {
+  padding: 0px;
+  margin: 3px;
+}
+
+div#past-beers img {
   height: 50px;
   width: 50px;
   padding: 0px 6px;
 }
 
-div#buttons {
-  text-align: center;
+.tooltip-inner {
+  white-space:pre;
+  max-width:none;
 }
-
