@@ -14,9 +14,10 @@
   <script src="js/app.js"></script>
 </head>
 <body ng-controller="BeerListCtrl">
-  <h1 ng-if="!curr_beer">Loading...</h1>
+  <h1 ng-if="isLoading" class="center-v">Loading...</h1>
 
-  <div ng-if="curr_beer">
+  <div ng-if="!isLoading">
+
     <div id="past-beers">
       <div id="hide-scroll">
         <ul>
@@ -30,24 +31,30 @@
       </button>
     </div>
 
-    <div id="beerInfo">
-      <p>Price: {{curr_beer.price_in_cents/100 | currency}}</p>
-      <p>Alcohol: {{curr_beer.alcohol_content / 100 }}%</p>
+    <div id="beerInfo" ng-if="next_beers_cache.length > 0">
+      <p>Price: {{next_beers_cache[0].price_in_cents/100 | currency}}</p>
+      <p>Alcohol: {{next_beers_cache[0].alcohol_content / 100 }}%</p>
+      <p>Volume: {{next_beers_cache[0].package_unit_volume_in_milliliters / 1000}}L x {{next_beers_cache[0].total_package_units}}</p>
     </div>
 
-    <h1>How about this?</h1>
-    <img id="current-beer" ng-src="{{curr_beer.image_url}}"\>
-    <h1>{{curr_beer.name}}</h1>
-    <div id="buttons">
-      <button type="button" class="btn btn-default btn-lg" ng-click="showAnotherBeer()">
-        <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span> Try again
-        <span class="badge">{{num_beers_to_try}}</span>
-      </button>
-      <button type="button" class="btn btn-default btn-lg" ng-click="acceptBeer()">
-        <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> Looks good!
-      </button>
+    <div ng-if="next_beers_cache.length > 0">
+      <h1>How about this?</h1>
+      <img id="current-beer" ng-src="{{next_beers_cache[0].image_url}}"\>
+      <h1>{{next_beers_cache[0].name}}</h1>
+      <div id="buttons">
+        <button type="button" class="btn btn-default btn-lg" ng-click="showAnotherBeer()" ng-disabled="num_beers_to_try < 2">
+          <span class="glyphicon glyphicon-repeat" aria-hidden="true"></span> Try again
+          <span class="badge">{{num_beers_to_try}}</span>
+        </button>
+        <button type="button" class="btn btn-default btn-lg" ng-click="acceptBeer()" ng-disabled="next_beers_cache.length <= 0">
+          <span class="glyphicon glyphicon-thumbs-up" aria-hidden="true"></span> Looks good!
+        </button>
+      </div>
+    </div>
+
+    <div ng-if="next_beers_cache.length <= 0">
+      <h1 class="center-v">You've tried them all!</h1>
     </div>
   </div>
-
 </body>
 </html>

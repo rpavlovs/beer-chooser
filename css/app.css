@@ -71,3 +71,7 @@ div#past-beers button {
   height: 52px;
   margin: 0px 3px 3px 3px;
 }
+
+h1.center-v {
+  margin-top:285px;
+}
