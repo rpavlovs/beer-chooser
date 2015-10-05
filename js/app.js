@@ -120,7 +120,6 @@ var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap'])
   };
 
   $scope.startOver = function() {
-
     var past_beers_tmp = $scope.past_beers;
     past_beers_tmp.shuffle();
     firebase_ref.child("past_beers").remove();
