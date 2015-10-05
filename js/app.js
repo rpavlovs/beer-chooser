@@ -2,6 +2,7 @@
 LCBO_API_LOCAL_BEER       = "http://lcboapi.com/products?q=beer&store_id=511&callback=JSON_CALLBACK";
 LCBO_API_LOCAL_INVENTORY  = "http://lcboapi.com/inventories?store_id=511&callback=JSON_CALLBACK";
 LCBO_API_PRODUCTS         = "http://lcboapi.com/products/";
+FIREBASE_URL              = "https://glowing-heat-4629.firebaseio.com/";
 
 NUM_BEERS_TO_PRELOAD      = 10;
 
@@ -27,14 +28,29 @@ var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap'])
   };
 })
 
-.controller('BeerListCtrl', function($scope, $http, $q, $firebaseArray) {
-  var ref = new Firebase("https://glowing-heat-4629.firebaseio.com/");
+.factory('TogglePref',function($firebaseObject) {
+    return function(path) {
+        var obj = $firebaseObject(new Firebase(FIREBASE_URL + "/toggle_pref"));
+        obj.$loaded(function() {
+            if( obj.$value === null ) {
+                angular.extend(obj, {show: false});
+                obj.$save();
+            }
+        });
+        return obj;
+    };
+})
+
+.controller('BeerListCtrl', function($scope, $http, $q, $firebaseObject, $firebaseArray, TogglePref) {
+  var firebase_ref = new Firebase(FIREBASE_URL);
 
   $scope.new_beer_ids = [];
-  $scope.past_beers = $firebaseArray(ref);
+  $scope.past_beers = $firebaseArray(firebase_ref.child("past_beers"));
   $scope.next_beers_cache = [];
   $scope.isLoading = true;
   $scope.num_beers_to_try = 0;
+
+  TogglePref().$bindTo($scope, "toggle_pref");
 
   $q.all([
       getLocalBeerIdsAsync(),
@@ -45,16 +61,12 @@ var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap'])
 
       $scope.new_beer_ids = _.difference(resolve[0], past_beer_ids);
 
-      console.log("New beer ids: ", $scope.new_beer_ids);
-
       if ($scope.new_beer_ids.length < 1) {
         $scope.isLoading = false;
         return;
       }
 
       $scope.new_beer_ids.shuffle();
-      console.log("New beer ids shuffled: ", $scope.new_beer_ids);
-
       $scope.num_beers_to_try = $scope.new_beer_ids.length;
 
       getProductAsync($scope.new_beer_ids.shift())
@@ -72,7 +84,6 @@ var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap'])
       $q.all(next_beers_promices)
         .then(function (beers) {
           $scope.next_beers_cache = $scope.next_beers_cache.concat(beers);
-          console.log("Next beers cache:", $scope.next_beers_cache);
         });
     });
 
@@ -80,10 +91,6 @@ var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap'])
     $scope.num_beers_to_try--;
     $scope.past_beers.$add($scope.next_beers_cache.shift())
       .then(function() {
-        console.log("Accept, past_beers updated", $scope.past_beers);
-        console.log("$scope.new_beer_ids", $scope.new_beer_ids);
-        console.log("$scope.next_beers_cache", $scope.next_beers_cache);
-
         if ($scope.new_beer_ids.length <= 0) {
           return $q.reject();
         }
@@ -95,8 +102,6 @@ var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap'])
   };
 
   $scope.showAnotherBeer = function() {
-    console.log($scope.next_beers_cache);
-
     if ($scope.new_beer_ids.length > 0) {
       getProductAsync($scope.new_beer_ids.shift())
         .then(function (beer) {
@@ -117,9 +122,8 @@ var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap'])
   $scope.startOver = function() {
 
     var past_beers_tmp = $scope.past_beers;
-    console.log("past_beers_tmp", past_beers_tmp);
     past_beers_tmp.shuffle();
-    ref.remove();
+    firebase_ref.child("past_beers").remove();
 
     for (var i=0; i<NUM_BEERS_TO_PRELOAD && past_beers_tmp[0]; i++) {
       $scope.next_beers_cache.push(past_beers_tmp.shift());
@@ -130,17 +134,16 @@ var app = angular.module('beerChooser', ["firebase", 'ui.bootstrap'])
     }
 
     $scope.num_beers_to_try = $scope.new_beer_ids.length + $scope.next_beers_cache.length;
+  };
 
-    console.log("past_beers_tmp", past_beers_tmp);
-    console.log("$scope.new_beer_ids", $scope.new_beer_ids);
-    console.log("$scope.next_beers_cache", $scope.next_beers_cache);
+  $scope.toggleInfo = function() {
+    $scope.toggle_pref.show = !$scope.toggle_pref.show;
   };
 
   function getProductAsync(id, cache) {
     return $q(function(resolve, reject) {
       $http.jsonp(LCBO_API_PRODUCTS+id+"?callback=JSON_CALLBACK")
         .then(function (responce) {
-          console.log("Load "+id+":", responce);
           var product = responce.data.result;
           if (product.image_url === null) {
             product.image_url = "img/no_image_bottle.png";

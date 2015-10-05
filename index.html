@@ -31,11 +31,23 @@
       </button>
     </div>
 
-    <div id="beerInfo" ng-if="next_beers_cache.length > 0">
-      <p>Price: {{next_beers_cache[0].price_in_cents/100 | currency}}</p>
-      <p>Alcohol: {{next_beers_cache[0].alcohol_content / 100 }}%</p>
-      <p>Volume: {{next_beers_cache[0].package_unit_volume_in_milliliters / 1000}}L x {{next_beers_cache[0].total_package_units}}</p>
+    <div id="beerInfo" ng-if="toggle_pref.show && next_beers_cache.length > 0">
+      <p><b>Price:</b> {{next_beers_cache[0].price_in_cents/100 | currency}}</p>
+      <p><b>Alcohol:</b> {{next_beers_cache[0].alcohol_content / 100 }}%</p>
+      <p><b>Volume:</b> {{next_beers_cache[0].package_unit_volume_in_milliliters / 1000}}L x {{next_beers_cache[0].total_package_units}}</p>
+      <p><b>Type:</b> {{next_beers_cache[0].tertiary_category}}</p>
+      <p><b>Origin:</b> {{next_beers_cache[0].origin}}</p>
+      <p ng-if="next_beers_cache[0].serving_suggestion" id="serving-note" >
+        <b>Serving note:</b><br>{{next_beers_cache[0].serving_suggestion}}
+      </p>
+      <p ng-if="next_beers_cache[0].tasting_note">
+        <b>Tasting note:</b><br>{{next_beers_cache[0].tasting_note}}
+      </p>
     </div>
+
+    <button id="toggle-info" type="button" class="btn btn-default" ng-click="toggleInfo()">
+      <span class="glyphicon glyphicon-align-left" aria-hidden="true"></span>
+    </button>
 
     <div ng-if="next_beers_cache.length > 0">
       <h1>How about this?</h1>
